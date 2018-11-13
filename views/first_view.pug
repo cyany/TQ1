@@ -1,0 +1,16 @@
+doctype html
+html
+	head
+		title=name
+	body
+		p.greeting#abc hello world
+		div.abc(width ="100",height ="20") haha
+		a(href =url) URL
+		p #{text}
+		if(user)
+			h1 Hi,#{user.name}
+			p #{user.age}
+		else
+			a(href="/login") Sign up
+		img(src="/logo.png",alt="logo.png")
+		img(src="static/logo.png",alt="logo.png")
