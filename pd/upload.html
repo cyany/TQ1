@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>upload</title>
+</head>
+<body>
+<form action="http://localhost:3000/upload" method="POST" enctype="multipart/form-data">
+	<input type="hidden" name="pdselected" value="0">
+	<input type="text" name="pdname" placeholder="name"><br>
+	<input type="text" name="pddesc" placeholder="desc"><br>
+	<input type="number" name="pdprice" placeholder="price"><br>
+	<input type="text" name="pdcolor" placeholder="color"><br>
+	<input type="text" name="pdcate" placeholder="cate"><br>
+	<input type="file" name="avatar" multiple="multiple">
+	<input type="submit" value="click">
+</form>
+</body>
+</html>

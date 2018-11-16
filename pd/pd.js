@@ -8,6 +8,22 @@ var fs = require("fs");
 var multer = require("multer");
 var upload = multer({dest:"uploads/"});
 
+var cookieParser = require("cookie-parser");
+var cookieEncrypter = require('cookie-encrypter');
+var secretKey = 'adsadsjadssdaadsdasajdksjadsadsa';
+var cookieParams ={
+	signed:true,
+	maxAge:300000
+}
+var expressSession = require('express-session');
+app.use(cookieParser(secretKey))
+app.use(cookieEncrypter(secretKey))
+app.use(expressSession({
+	secret:'mahdjhasdjhahdsahdshahsdj',
+	resave: true, 
+	saveUninitialized: true,
+	cookie:{maxAge:6000}
+}))
 
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(bodyParser.json());
@@ -114,7 +130,41 @@ app.post("/upload",upload.array('avatar',2),function(req,res){
 	})
 })
 
+app.get("/setcookie",function(req,res){
+	res.cookie('name1','setcookie',cookieParams);
+	res.cookie('age1',{mydata:'is encrypted'},cookieParams)
+	res.cookie('plaincookie','mytest',cookieParams);
+	res.cookie('plaincookie2',{mydata:'is encrypted'},cookieParams)
+	res.json({code:0});
+})
 
+app.get("/getcookie",function(req,res){
+	// var name=req.cookie.name;
+	// var age = req.cookie.age;
+	// res.json({"name":name,"age":age});
+	console.log(req.cookies);
+	console.log(req.signedCookies)
+	res.json({code:0})
+})
+
+app.get("/clearcookie",function(req,res){
+	res.clearCookie("age1");
+	res.json({code:0});
+})
+
+app.get("/setsession",function(req,res){
+
+	console.log(req.session);
+	console.log(req.session.cookie)
+	if(req.session.pageViews){
+		req.session.pageViews++;
+			req.session.abc=123;
+		res.send("you viewed"+req.session.pageViews)
+	}else{
+		req.session.pageViews=1;
+		res.send("one time")
+	}
+})
 app.all("*",function(req,res){
 	res.json({code:404,info:"该页面不存在"})
 })
