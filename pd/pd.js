@@ -3,6 +3,7 @@ var app = express();
 var mongoose = require("mongoose");
 var bodyParser = require("body-parser");
 mongoose.connect('mongodb://localhost/pd',{ useNewUrlParser: true });
+var nodemailer = require("nodemailer");
 
 var fs = require("fs");
 var multer = require("multer");
@@ -31,7 +32,7 @@ app.use(bodyParser.json());
 var mongoCon = mongoose.connection;
 mongoCon.on('error', console.error.bind(console, 'MongoDB connection error:'));
 var pdSchema = mongoose.Schema({
-	selected:String,
+	selected:Number,
 	name:String,
 	price:Number,
 	desc:String,
@@ -104,6 +105,19 @@ app.get("/pdLists/price",function(req,res){
 // 		}
 // 	});
 // })
+
+app.get("/pageNum",function(req,res){
+	var currentPage = req.query.currentPage;
+	console.log(currentPage)
+	pd.find().skip(currentPage*1).limit(1).exec(function(err,doc){
+		if(err){
+			console.log(err)
+		}else{
+			res.json(doc);
+		}
+	})
+})
+
 app.post("/upload",upload.array('avatar',2),function(req,res){
 	console.log(req.files);
 	var imgDist = [];
@@ -124,7 +138,6 @@ app.post("/upload",upload.array('avatar',2),function(req,res){
 		if(err){
 			console.log(err);
 		}else{
-			// res.json({"code":0,"data":doc});
 			res.sendFile(__dirname+"/upload.html");
 		}
 	})
@@ -165,6 +178,135 @@ app.get("/setsession",function(req,res){
 		res.send("one time")
 	}
 })
+
+var pdorderlistSchema = mongoose.Schema({
+	allPrice:Number,
+	username:String,
+	status:Number
+});
+var pdorderinfoSchema = mongoose.Schema({
+	prodcutid:String,
+	num:Number,
+	orderNum:String
+});
+var userSchema = mongoose.Schema({
+	name:String,
+	gender:String,
+	age:Number,
+	email:String
+});
+var pdorderlist = mongoose.model('orderlist',pdorderlistSchema);
+var pdorderinfo = mongoose.model('orderitems',pdorderinfoSchema);
+var pduser = mongoose.model('user',userSchema);
+
+app.get("/addtocart",function(req,res){
+	// params:id,num
+	pd.findById('5bef68cffe4f5f216c6ce81f',function(err,doc){
+		if(err){
+			console.log(err)
+		}else{
+			var pdorderinfoDetail = new pdorderinfo({
+				prodcutid:'5bef68cffe4f5f216c6ce81f',
+				num:2,
+				orderNum:doc2._id
+			});
+			pdorderinfoDetail.save(function(err,doc){
+				if(err){console.log(err)}else{
+					res.json({code:0});
+				}
+			})
+			
+		}
+	});
+	
+	
+	// 
+})
+
+app.get("/cart",function(req,res){
+	// name
+	pduser.find({name:'jack'},function(err,doc){
+		if(err){
+			console.log(err)
+		}else{
+			res.json(doc)
+		}
+	})
+})
+app.get("/generateOrder",function(req,res){
+	var pdorderDetail = new pdorderlist({
+		allPrice:0,
+		username:'jack4',
+		status:1,
+	});
+	console.log(pdorderDetail)
+	pdorderDetail.save(function(err,doc2){
+		if(err){
+			console.log(err)
+		}else{
+			res.json(doc);
+		}
+
+	})
+})
+
+app.get("/sendEmail",function(req,res){
+nodemailer.createTestAccount((err, account) => {
+    // create reusable transporter object using the default SMTP transport
+    let transporter = nodemailer.createTransport({
+            host: "smtp.163.com",
+            secureConnection: true,
+            port:465,
+        auth: {
+            user: 'xxx@163.com', // generated ethereal user
+            pass: 'xxx' // generated ethereal password
+        }
+    });
+
+    // setup email data with unicode symbols
+    let mailOptions = {
+        from: 'xxx@163.com', // sender address
+        to: 'xxx@qq.com', // list of receivers
+        subject: 'Hello ✔', // Subject line
+        text: 'Hello world?', // plain text body
+        html: `<div>
+        <h2 style="font-size:30px;color:#53ff53;">haha</h2>
+        <a href="http://www.cyany.com">1345648</a>`, // html body
+        attachments:[
+        	{
+        		filename:'text.txt',
+        		content:'hello,world'
+        	},
+        	{
+        		filename:'text.txt',
+        		path:'text.txt'
+        	}
+        ]
+    };
+
+    transporter.verify(function(error, success) {
+   if (error) {
+        console.log(error);
+   } else {
+        console.log('Server is ready to take our messages');
+   }
+});
+    // send mail with defined transport object
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return console.log(error);
+        }
+        console.log('Message sent: %s', info.messageId);
+        // Preview only available when sending through an Ethereal account
+        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+
+        // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
+        // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+    });
+});
+res.json({code:0})
+})
+
 app.all("*",function(req,res){
 	res.json({code:404,info:"该页面不存在"})
 })
