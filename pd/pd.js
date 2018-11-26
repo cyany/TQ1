@@ -4,6 +4,8 @@ var mongoose = require("mongoose");
 var bodyParser = require("body-parser");
 mongoose.connect('mongodb://localhost/pd',{ useNewUrlParser: true });
 var nodemailer = require("nodemailer");
+var request = require("request");
+
 
 var fs = require("fs");
 var multer = require("multer");
@@ -251,64 +253,99 @@ app.get("/generateOrder",function(req,res){
 })
 
 app.get("/sendEmail",function(req,res){
-nodemailer.createTestAccount((err, account) => {
-    // create reusable transporter object using the default SMTP transport
-    let transporter = nodemailer.createTransport({
-            host: "smtp.163.com",
-            secureConnection: true,
-            port:465,
-        auth: {
-            user: 'xxx@163.com', // generated ethereal user
-            pass: 'xxx' // generated ethereal password
-        }
-    });
+	nodemailer.createTestAccount((err, account) => {
+	    // create reusable transporter object using the default SMTP transport
+	    let transporter = nodemailer.createTransport({
+	            host: "smtp.163.com",
+	            secureConnection: true,
+	            port:465,
+	        auth: {
+	            user: 'xxx@163.com', // generated ethereal user
+	            pass: 'xxx' // generated ethereal password
+	        }
+	    });
 
-    // setup email data with unicode symbols
-    let mailOptions = {
-        from: 'xxx@163.com', // sender address
-        to: 'xxx@qq.com', // list of receivers
-        subject: 'Hello ✔', // Subject line
-        text: 'Hello world?', // plain text body
-        html: `<div>
-        <h2 style="font-size:30px;color:#53ff53;">haha</h2>
-        <a href="http://www.cyany.com">1345648</a>`, // html body
-        attachments:[
-        	{
-        		filename:'text.txt',
-        		content:'hello,world'
-        	},
-        	{
-        		filename:'text.txt',
-        		path:'text.txt'
-        	}
-        ]
-    };
+	    // setup email data with unicode symbols
+	    let mailOptions = {
+	        from: 'xxx@163.com', // sender address
+	        to: 'xxx@qq.com', // list of receivers
+	        subject: 'Hello ✔', // Subject line
+	        text: 'Hello world?', // plain text body
+	        html: `<div>
+	        <h2 style="font-size:30px;color:#53ff53;">haha</h2>
+	        <a href="http://www.cyany.com">1345648</a>`, // html body
+	        attachments:[
+	        	{
+	        		filename:'text.txt',
+	        		content:'hello,world'
+	        	},
+	        	{
+	        		filename:'text.txt',
+	        		path:'text.txt'
+	        	}
+	        ]
+	    };
 
-    transporter.verify(function(error, success) {
-   if (error) {
-        console.log(error);
-   } else {
-        console.log('Server is ready to take our messages');
-   }
-});
-    // send mail with defined transport object
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            return console.log(error);
-        }
-        console.log('Message sent: %s', info.messageId);
-        // Preview only available when sending through an Ethereal account
-        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+	    transporter.verify(function(error, success) {
+	   if (error) {
+	        console.log(error);
+	   } else {
+	        console.log('Server is ready to take our messages');
+	   }
+	});
+	    // send mail with defined transport object
+	    transporter.sendMail(mailOptions, (error, info) => {
+	        if (error) {
+	            return console.log(error);
+	        }
+	        console.log('Message sent: %s', info.messageId);
+	        // Preview only available when sending through an Ethereal account
+	        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
 
-        // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
-        // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
-    });
-});
-res.json({code:0})
+	        // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
+	        // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+	    });
+	});
+	res.json({code:0})
 })
+
+// request('https://jsonplaceholder.typicode.com/todos/1',{json:true},(err,res,body)=>{
+// 	if(err){
+// 		console.log(err);
+// 	}else{
+// 		console.log(res)
+// 		console.log(body,123);
+// 	}
+// })
+
+let formData ={
+	post:'123',
+	abc:'456'
+};
+
+let content;
+request.post({url:'https://jsonplaceholder.typicode.com/posts',formData:formData},(err,res,body)=>{
+	if(err){
+		console.log(err);
+	}else{
+		content = body;
+		console.log(body,123);
+	}
+});
+app.get('/otherApi',function(req,res){
+	console.log(content,456);
+	if(content){
+		res.json(JSON.parse(content));
+	}else{
+		res.json({code:1,'msg':'error !'})
+	}
+});
+
+
 
 app.all("*",function(req,res){
 	res.json({code:404,info:"该页面不存在"})
 })
+
 
 app.listen(3000);
