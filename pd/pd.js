@@ -5,6 +5,11 @@ var bodyParser = require("body-parser");
 mongoose.connect('mongodb://localhost/pd',{ useNewUrlParser: true });
 var nodemailer = require("nodemailer");
 var request = require("request");
+var path = require('path');
+var AdmZip = require('adm-zip');
+var fs = require('fs');
+var officegen = require('officegen');
+var async = require('async');
 
 
 var fs = require("fs");
@@ -341,8 +346,143 @@ app.get('/otherApi',function(req,res){
 	}
 });
 
+// var zip = new AdmZip();
+// app.get('/generateZip',function(req,res){
+// 	var content = "inner content of the file";
+// 	zip.addFile('zipdemo.txt',Buffer.alloc(content.length,content),"comment");
+// 	zip.addLocalFile("F:/express/pd/uploads/0e7c7ba77f991465157d14c1c0d0322b");
+// 	// var willSendthis = zip.toBuffer();
+// 	// console.log(willSendthis);  buffer stream data
+// 	zip.writeZip('F:/express/pd/uploads/zip2.zip'); absolute path !!!
+// 	res.json({code:1});
+// });
 
+app.get("/extractZip",function(req,res){
+	var zip = new AdmZip("F:/express/pd/uploads/zip1.zip");
+	var zipEntries = zip.getEntries();
+	zipEntries.forEach(function(zipEntry){
+		console.log(zipEntry.toString(),123);
+		if(zipEntry.entryName =="zipdemo.txt"){
+			console.log(zipEntry.getData().toString('utf8'),456);
+		}
+	});
+	console.log(zip.readAsText("F:/express/pd/text.txt"),789);
+	// zip.extractEntryTo("F:/express/pd/zip1.zip","F:/express/pd/uploads/",false,true);
+	zip.extractAllTo("F:/express/pd/uploads/",true);
+});
 
+app.get("/generateExcle",function(req,res){
+	var content = [{
+	    "name": "Nilesh",
+	    "school": "RDTC",
+	    "marks": "77"
+	   },{
+	    "name": "Sagar",
+	    "school": "RC",
+	    "marks": "99.99"
+	   },{
+	    "name": "Prashant",
+	    "school": "Solapur",
+	    "marks": "100"
+	 }];
+	 var data = '';
+	 for(var i = 0;i < content.length;i++){
+	 	data+=content[i].name+'\t'+content[i].school+'\t'+content[i].marks+'\n';
+	 }
+	 fs.appendFile(path.join(__dirname,'/uploads/score1.xls'),data,(err)=>{//or:F:/express/pd/uploads/score.xls
+	 	if(err){
+	 		console.log(err);
+	 	}else{
+	 		res.json({code:0,meg:'successfully created xls.'});
+	 	}
+	 });
+})
+
+app.get("/generateWord",function(req,res){
+	var docx = officegen ( 'docx' );
+	var pObj = docx.createP();
+	pObj.options.align="center";
+	pObj.addText("Lorem ipsum dolor sit amet, consectetur adipisicing elit. Reprehenderit ipsum molestiae assumenda sint cum voluptas impedit dolorem praesentium enim fuga.\r\n");
+	pObj.addLineBreak ();
+	pObj.addText('with color',{color:'53ff53'});
+	pObj.addLineBreak ();
+	pObj.addText('External link',{link:'https:google.com'});
+	pObj.startBookmark("myBookmask");
+	pObj.endBookmark('myBookmask');
+	//create table
+	var table = [
+	  [{
+	    val: "No.",
+	    opts: {
+	      cellColWidth: 4261,
+	      b:true,
+	      sz: '48',
+	      shd: {
+	        fill: "7F7F7F",
+	        themeFill: "text1",
+	        "themeFillTint": "80"
+	      },
+	      fontFamily: "Avenir Book"
+	    }
+	  },{
+	    val: "Title1",
+	    opts: {
+	      b:true,
+	      color: "A00000",
+	      align: "right",
+	      shd: {
+	        fill: "92CDDC",
+	        themeFill: "text1",
+	        "themeFillTint": "80"
+	      }
+	    }
+	  },{
+	    val: "Title2",
+	    opts: {
+	      align: "center",
+	      vAlign: "center",
+	      cellColWidth: 42,
+	      b:true,
+	      sz: '48',
+	      shd: {
+	        fill: "92CDDC",
+	        themeFill: "text1",
+	        "themeFillTint": "80"
+	      }
+	    }
+	  }],
+	  [1,'All grown-ups were once children',''],
+	  [2,'there is no harm in putting off a piece of work until another day.',''],
+	  [3,'But when it is a matter of baobabs, that always means a catastrophe.',''],
+	  [4,'watch out for the baobabs!','END'],
+	]
+	var tableStyle = {
+	  tableColWidth: 4261,
+	  tableSize: 24,
+	  tableColor: "ada",
+	  tableAlign: "left",
+	  tableFontFamily: "Comic Sans MS",
+	  borders: true
+	}
+	docx.createTable (table, tableStyle);
+	var out = fs.createWriteStream(path.join(__dirname,'/uploads/demo.docx'));
+	out.on('error',function(err){
+		console.log(err);
+	});
+	async.parallel([
+			function(done){
+				out.on('close',function(){
+					console.log('created');
+					done(null);
+				});
+				docx.generate(out);
+			}
+		],function(err){
+			if(err){
+				console.log(err,2);
+			}
+		})
+})
 app.all("*",function(req,res){
 	res.json({code:404,info:"该页面不存在"})
 })

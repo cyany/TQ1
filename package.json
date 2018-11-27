@@ -9,6 +9,8 @@
   "author": "me",
   "license": "ISC",
   "dependencies": {
+    "adm-zip": "^0.4.13",
+    "async": "^2.6.1",
     "body-parser": "^1.18.3",
     "busboy": "^0.2.14",
     "cookie-encrypter": "^1.0.1",
@@ -20,6 +22,8 @@
     "multer": "^1.4.1",
     "nodemailer": "^4.7.0",
     "nodemon": "^1.18.4",
+    "officegen": "^0.4.7",
+    "path": "^0.12.7",
     "pug": "^2.0.3",
     "request": "^2.88.0",
     "socket.io": "^2.1.1"
