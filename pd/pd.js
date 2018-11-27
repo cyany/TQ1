@@ -10,6 +10,7 @@ var AdmZip = require('adm-zip');
 var fs = require('fs');
 var officegen = require('officegen');
 var async = require('async');
+var schedule = require("node-schedule");
 
 
 var fs = require("fs");
@@ -399,15 +400,15 @@ app.get("/generateExcle",function(req,res){
 })
 
 app.get("/generateWord",function(req,res){
-	var docx = officegen ( 'docx' );
-	var pObj = docx.createP();
-	pObj.options.align="center";
+	var docx = officegen ( 'docx' );  //create docx
+	var pObj = docx.createP(); //create paragrph
+	pObj.options.align="center";  //set center
 	pObj.addText("Lorem ipsum dolor sit amet, consectetur adipisicing elit. Reprehenderit ipsum molestiae assumenda sint cum voluptas impedit dolorem praesentium enim fuga.\r\n");
-	pObj.addLineBreak ();
+	pObj.addLineBreak ();//line break
 	pObj.addText('with color',{color:'53ff53'});
 	pObj.addLineBreak ();
-	pObj.addText('External link',{link:'https:google.com'});
-	pObj.startBookmark("myBookmask");
+	pObj.addText('External link',{link:'https:google.com'});//add linked text
+	pObj.startBookmark("myBookmask"); //not work
 	pObj.endBookmark('myBookmask');
 	//create table
 	var table = [
@@ -483,6 +484,24 @@ app.get("/generateWord",function(req,res){
 			}
 		})
 })
+
+var j = schedule.scheduleJob('49 * * * *',function(){
+	console.log("every hour 's 49 minutes.")
+});
+var j1 = schedule.scheduleJob(new Date(2018,10,27,15,52,0),function(){
+	console.log("2018/10/27 15:52:00 running")
+});
+var rule =new schedule.RecurrenceRule();
+rule.minute = 2;
+var j2 = schedule.scheduleJob(rule,function(){
+	console.log("every minute 's 2 running again!")
+})
+var j3 = schedule.scheduleJob({hour:16,minute:12,dayOfWeek:2},function(){
+	console.log("every thuesday 16:12:00 running !");
+});
+// j3.cancel();  invalidate j3 job.
+
+
 app.all("*",function(req,res){
 	res.json({code:404,info:"该页面不存在"})
 })
