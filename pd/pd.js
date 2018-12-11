@@ -159,7 +159,8 @@ app.post("/upload",upload.array('avatar',2),function(req,res){
 		if(err){
 			console.log(err);
 		}else{
-			res.sendFile(__dirname+"/upload.html");
+			// res.sendFile(__dirname+"/upload.html");
+			res.json({code:0,res:'ok'});
 		}
 	})
 })
