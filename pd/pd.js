@@ -62,6 +62,7 @@ app.get("/",function(req,res){
 	res.send("123");
 });
 
+// all products
 app.get("/pdLists",function(req,res){
 	pd.find(function(err,doc){
 		if(err){
@@ -71,6 +72,16 @@ app.get("/pdLists",function(req,res){
 		}
 	})
 })
+
+// leftPart
+app.get("/pdLists/leftPart",function(req,res){
+	var query = pd.find({}).select({"cate":1,"color":1});
+	query.exec(function(err,doc){
+		console.log(doc);
+		res.json({code:0,res:doc});
+	})
+})
+
 
 app.get("/pdLists/cate/:cate",function(req,res){
 	pd.find({cate:req.params.cate},function(err,doc){
@@ -92,8 +103,9 @@ app.get("/pdLists/color/:color",function(req,res){
 	})
 })
 
+// http://localhost:3000/pdLists/price?min=1000&max=5900
 app.get("/pdLists/price",function(req,res){
-	var q =pd.find().where('price').gt(req.query.min).lt(req.query.max);
+	var q =pd.find().where('price').gt(req.params.min).lt(req.params.max);
 	q.exec(function(err,doc){
 		if(err){
 			console.log(err);
@@ -102,6 +114,7 @@ app.get("/pdLists/price",function(req,res){
 		}
 	});
 })
+
 
 // app.post("/pdLists/price",function(req,res){
 // 	var q =pd.find().where('price').gt(req.body.min).lt(req.body.max);
@@ -117,7 +130,7 @@ app.get("/pdLists/price",function(req,res){
 app.get("/pageNum",function(req,res){
 	var currentPage = req.query.currentPage;
 	console.log(currentPage)
-	pd.find().skip(currentPage*1).limit(1).exec(function(err,doc){
+	pd.find().skip(currentPage*8).limit(8).exec(function(err,doc){
 		if(err){
 			console.log(err)
 		}else{
